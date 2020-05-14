@@ -29,10 +29,10 @@ navigator.mediaDevices.getUserMedia({video: true, audio: true})
         })
 
         // Transmissão encerrada
-        peer.on('close', function(){
-            document.getElementById('peerVideo').remove();
-            peer.destroy()
-        })
+        // peer.on('close', function(){
+        //     document.getElementById('peerVideo').remove();
+        //     peer.destroy()
+        // })
 
         return peer
     }
@@ -62,6 +62,7 @@ navigator.mediaDevices.getUserMedia({video: true, audio: true})
             socket.emit('Answer', data)
         })
         peer.signal(offer)
+        client.peer = peer
     }
 
     /**
@@ -76,22 +77,47 @@ navigator.mediaDevices.getUserMedia({video: true, audio: true})
 
     // Criar dinamicamente objeto video quando obtiver uma transmissão
     function CreateVideo(stream) {
+        // CreateDiv()
+
         let video = document.createElement('video')
         video.id = 'peerVideo'
         video.srcObject = stream
-        video.class = 'embed-responsive-item'
+        //video.class = 'embed-responsive-item'
+        video.setAttribute('class', 'embed-responsive-item')
         document.querySelector('#peerDiv').appendChild(video)
         video.play()
+
+        video.addEventListener('click', () => {
+            if (video.volume != 0)
+                video.volume = 0
+            else
+                video.volume = 1
+        })
     }
 
     function SessionActive() {
         document.write('Sessão Ativa. Por favor, retorne mais tarde.');
     }
 
+    function RemovePeer() {
+        document.getElementById('peerVideo').remove();
+        if (client.peer)
+            client.peer.destroy()
+    }
+
     socket.on('BackOffer', FrontAnswer) // Quando a oferta retornar do backend
     socket.on('BackAnswer', SignalAnswer) // Quando a resposta retornar do backend
     socket.on('SessionActive', SessionActive)
     socket.on('CreatePeer', MakePeer)
+    socket.on('Disconnect', RemovePeer)
 
 })
 .catch(err => document.write(err))
+
+function CreateDiv() {
+    let div = document.createElement('div')
+    div.setAttribute('class', 'centered')
+    div.id = 'muteText'
+    div.innerHTML = "Clique para Ativar/Desativar o som."
+    document.querySelector('#peerDiv').appendChild(div)
+}
