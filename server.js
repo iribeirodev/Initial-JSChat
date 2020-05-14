@@ -24,13 +24,12 @@ io.on('connection', function(socket){
             if (clients == 1) {
                 this.emit('CreatePeer')
             }
-
-            clients++
         } else {
             this.emit('SessionActive')
             ShowInfo('Sessão já ativa')
         }
-        
+
+        clients++
     })
 
     socket.on('Offer', SendOffer)
@@ -40,7 +39,9 @@ io.on('connection', function(socket){
 
 function Disconnect() {
     if (clients > 0)
-        clients--
+        if (clients <= 2)
+            this.broadcast.emit('Disconnect')
+        Decrease()
 
     ShowInfo('Cliente terminou a sessão');
 }
@@ -51,6 +52,11 @@ function SendOffer(offer) {
 
 function SendAnswer(data) {
     this.broadcast.emit('BackAnswer', data)
+}
+
+function Decrease(){
+    clients--
+    if (clients < 0) clients = 0
 }
 
 function ShowInfo(msg){
